@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Rain Adventure</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Nunito', sans-serif; }
+    .title-font { font-family: 'Fredoka', sans-serif; }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 200, 0, 0.4); }
+      50% { box-shadow: 0 0 40px rgba(255, 200, 0, 0.8); }
+    }
+    
+    @keyframes rain-fall {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes bounce-in {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes slide-up {
+      0% { transform: translateY(30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .float-animation { animation: float 3s ease-in-out infinite; }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .bounce-in { animation: bounce-in 0.5s ease-out forwards; }
+    .slide-up { animation: slide-up 0.4s ease-out forwards; }
+    .shake { animation: shake 0.3s ease-in-out; }
+    
+    .star-filled { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    .star-empty { color: #4a5568; }
+    
+    .game-btn {
+      background: linear-gradient(180deg, #FFE066 0%, #FFB800 100%);
+      border: 4px solid #E6A600;
+      border-radius: 16px;
+      box-shadow: 0 6px 0 #CC9200, 0 8px 20px rgba(0,0,0,0.2);
+      transition: all 0.1s ease;
+    }
+    
+    .game-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 #CC9200, 0 10px 25px rgba(0,0,0,0.25);
+    }
+    
+    .game-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #CC9200, 0 4px 10px rgba(0,0,0,0.2);
+    }
+    
+    .level-card {
+      background: linear-gradient(145deg, #ffffff 0%, #f0f4ff 100%);
+      border: 3px solid #e2e8f0;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .level-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      border-color: #FFB800;
+      box-shadow: 0 15px 30px rgba(255, 184, 0, 0.3);
+    }
+    
+    .level-card.locked {
+      opacity: 0.6;
+      filter: grayscale(0.5);
+    }
+    
+    .powerup-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .powerup-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .letter-box {
+      width: 50px;
+      height: 60px;
+      background: linear-gradient(180deg, #4F46E5 0%, #3730A3 100%);
+      border: 3px solid #312E81;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 0 #1E1B4B;
+    }
+    
+    .falling-letter {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(180deg, #FB923C 0%, #F97316 100%);
+      border: 3px solid #EA580C;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 0 #C2410C;
+      cursor: pointer;
+      transition: all 0.08s ease;
+      user-select: none;
+    }
+    
+    .falling-letter:hover {
+      transform: scale(1.15);
+      box-shadow: 0 6px 0 #C2410C, 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+    
+    .falling-letter:active {
+      transform: scale(1.05);
+    }
+    
+    .falling-letter.wrong {
+      background: linear-gradient(180deg, #FB923C 0%, #F97316 100%);
+      border-color: #EA580C;
+      box-shadow: 0 3px 0 #C2410C;
+    }
+    
+    .falling-letter.powerup {
+      background: linear-gradient(180deg, #A78BFA 0%, #8B5CF6 100%);
+      border-color: #7C3AED;
+      box-shadow: 0 3px 0 #6D28D9;
+    }
+    
+    .basket {
+      width: 100px;
+      height: 60px;
+      background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+      border: 4px solid #B45309;
+      border-radius: 0 0 20px 20px;
+      position: absolute;
+      bottom: 10px;
+      transition: left 0.05s linear;
+    }
+    
+    .progress-bar {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+      border-radius: 6px;
+      transition: width 0.3s ease;
+    }
+    
+    .vocab-card {
+      background: linear-gradient(145deg, #ffffff 0%, #fef3c7 100%);
+      border: 4px solid #F59E0B;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+    }
+    
+    .matching-card {
+      background: linear-gradient(145deg, #EEF2FF 0%, #C7D2FE 100%);
+      border: 3px solid #818CF8;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .matching-card:hover {
+      transform: scale(1.05);
+      border-color: #4F46E5;
+    }
+    
+    .matching-card.selected {
+      border-color: #10B981;
+      background: linear-gradient(145deg, #D1FAE5 0%, #A7F3D0 100%);
+    }
+    
+    .matching-card.correct {
+      border-color: #10B981;
+      background: linear-gradient(145deg, #D1FAE5 0%, #A7F3D0 100%);
+    }
+    
+    .matching-card.wrong {
+      border-color: #EF4444;
+      background: linear-gradient(145deg, #FEE2E2 0%, #FECACA 100%);
+    }
+    
+    .spelling-letter {
+      width: 50px;
+      height: 60px;
+      background: linear-gradient(180deg, #E0E7FF 0%, #C7D2FE 100%);
+      border: 3px solid #818CF8;
+      border-radius: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #4F46E5;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .spelling-letter:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+    }
+    
+    .spelling-slot {
+      width: 50px;
+      height: 60px;
+      background: #F3F4F6;
+      border: 3px dashed #9CA3AF;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #4F46E5;
+    }
+    
+    .spelling-slot.filled {
+      background: linear-gradient(180deg, #D1FAE5 0%, #A7F3D0 100%);
+      border: 3px solid #10B981;
+    }
+    
+    .heart { color: #EF4444; }
+    .heart-empty { color: #9CA3AF; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 overflow-auto">
+  <div id="app" class="w-full h-full"></div>
+  <script>
+    // Game Configuration
+    const defaultConfig = {
+      game_title: 'Word Rain Adventure',
+      start_button_text: 'Start Game',
+      primary_color: '#4F46E5',
+      secondary_color: '#FFB800',
+      background_color: '#1E1B4B',
+      text_color: '#FFFFFF',
+      accent_color: '#10B981'
+    };
+
+    // Vocabulary Data
+    const vocabularyData = [
+      { id: 'apple', word: 'APPLE', thai: 'แอปเปิ้ล', emoji: '🍎' },
+      { id: 'banana', word: 'BANANA', thai: 'กล้วย', emoji: '🍌' },
+      { id: 'orange', word: 'ORANGE', thai: 'ส้ม', emoji: '🍊' },
+      { id: 'grape', word: 'GRAPE', thai: 'องุ่น', emoji: '🍇' },
+      { id: 'mango', word: 'MANGO', thai: 'มะม่วง', emoji: '🥭' },
+      { id: 'cat', word: 'CAT', thai: 'แมว', emoji: '🐱' },
+      { id: 'dog', word: 'DOG', thai: 'สุนัข', emoji: '🐕' },
+      { id: 'bird', word: 'BIRD', thai: 'นก', emoji: '🐦' },
+      { id: 'fish', word: 'FISH', thai: 'ปลา', emoji: '🐟' },
+      { id: 'star', word: 'STAR', thai: 'ดาว', emoji: '⭐' }
+    ];
+
+    // Game State
+    let gameState = {
+      currentScreen: 'menu',
+      currentLevel: 1,
+      unlockedLevels: [1],
+      currentWordIndex: 0,
+      score: 0,
+      lives: 3,
+      combo: 0,
+      completedLevels: [],
+      totalStars: 0,
+      highScores: { level1: 0, level2: 0, level3: 0, level4: 0 }
+    };
+
+    // Rain Game State
+    let rainGame = {
+      basketX: 50,
+      fallingLetters: [],
+      collectedLetters: [],
+      targetWord: '',
+      gameInterval: null,
+      isPlaying: false,
+      powerups: { turbo: 1, freeze: 1, magnet: 1, bomb: 1 },
+      isTurbo: false,
+      isFreeze: false,
+      isMagnet: false
+    };
+
+    // Initialize SDK
+    let config = { ...defaultConfig };
+
+    const dataHandler = {
+      onDataChanged(data) {
+        renderCurrentScreen();
+      }
+    };
+
+    function updateUnlockedLevels() {
+      gameState.unlockedLevels = [1];
+      
+      // ด่าน 1 ผ่านแล้ว → เปิดด่าน 2
+      if (gameState.completedLevels.includes(1)) {
+        gameState.unlockedLevels.push(2);
+      }
+      
+      // ด่าน 2 ผ่านแล้ว → เปิดด่าน 3
+      if (gameState.completedLevels.includes(2)) {
+        gameState.unlockedLevels.push(3);
+      }
+      
+      // ด่าน 3 ผ่านแล้ว → เปิดด่าน 4
+      if (gameState.completedLevels.includes(3)) {
+        gameState.unlockedLevels.push(4);
+      }
+    }
+
+    function saveProgress(levelNum, stars) {
+      if (!gameState.completedLevels.includes(levelNum)) {
+        gameState.completedLevels.push(levelNum);
+      }
+      gameState.highScores[`level${levelNum}`] = Math.max(gameState.highScores[`level${levelNum}`], gameState.score);
+      gameState.totalStars = calculateTotalStars();
+      updateUnlockedLevels();
+    }
+
+    // Render Functions
+    function renderCurrentScreen() {
+      const app = document.getElementById('app');
+      switch (gameState.currentScreen) {
+        case 'menu': renderMainMenu(app); break;
+        case 'levels': renderLevelSelect(app); break;
+        case 'howto': renderHowToPlay(app); break;
+        case 'level1': renderLevel1(app); break;
+        case 'level2': renderLevel2(app); break;
+        case 'level3': renderLevel3(app); break;
+        case 'level4': renderLevel4(app); break;
+        case 'result': renderResult(app); break;
+      }
+    }
+
+    function renderMainMenu(container) {
+      const totalStars = calculateTotalStars();
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
+          <!-- Decorative elements -->
+          <div class="absolute top-10 left-10 text-6xl float-animation" style="animation-delay: 0s;">🌟</div>
+          <div class="absolute top-20 right-16 text-5xl float-animation" style="animation-delay: 0.5s;">📚</div>
+          <div class="absolute bottom-20 left-16 text-5xl float-animation" style="animation-delay: 1s;">🎮</div>
+          <div class="absolute bottom-10 right-10 text-6xl float-animation" style="animation-delay: 1.5s;">🏆</div>
+          
+          <!-- Logo/Title -->
+          <div class="text-center mb-8 bounce-in">
+            <div class="text-8xl mb-4">🌈</div>
+            <h1 id="game-title" class="title-font text-5xl md:text-6xl font-bold text-white drop-shadow-lg mb-2">
+              ${config.game_title || defaultConfig.game_title}
+            </h1>
+            <p class="text-xl text-purple-200">เกมฝึกคำศัพท์ภาษาอังกฤษสุดสนุก!</p>
+          </div>
+          
+          <!-- Stars Display -->
+          <div class="bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-8 flex items-center gap-3 slide-up">
+            <span class="text-3xl">⭐</span>
+            <span class="text-2xl font-bold text-yellow-300">${totalStars} / ${vocabularyData.length * 3}</span>
+          </div>
+          
+          <!-- Menu Buttons -->
+          <div class="flex flex-col gap-4 w-full max-w-xs">
+            <button onclick="navigateTo('levels')" class="game-btn py-4 px-8 text-xl font-bold text-amber-900 hover:scale-105 transition-transform slide-up" style="animation-delay: 0.1s;">
+              <span class="flex items-center justify-center gap-3">
+                <span class="text-2xl">🎯</span>
+                <span id="start-btn-text">${config.start_button_text || defaultConfig.start_button_text}</span>
+              </span>
+            </button>
+            
+            <button onclick="navigateTo('howto')" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 py-4 px-8 rounded-2xl text-xl font-bold text-white shadow-lg hover:scale-105 transition-transform slide-up" style="animation-delay: 0.2s;">
+              <span class="flex items-center justify-center gap-3">
+                <span class="text-2xl">📖</span>
+                <span>วิธีเล่น</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLevelSelect(container) {
+      const levels = [
+        { num: 1, name: 'เรียนรู้คำศัพท์', desc: 'ดูภาพ ฟังเสียง จำคำศัพท์', icon: '📚', color: 'from-green-400 to-emerald-500' },
+        { num: 2, name: 'จับคู่คำศัพท์', desc: 'เลือกคำที่ตรงกับรูปภาพ', icon: '🎯', color: 'from-blue-400 to-indigo-500' },
+        { num: 3, name: 'ฝึกสะกดคำ', desc: 'เรียงตัวอักษรให้ถูกต้อง', icon: '✏️', color: 'from-purple-400 to-pink-500' },
+        { num: 4, name: 'ฝนตัวอักษร', desc: 'เก็บตัวอักษรพิชิตคำศัพท์!', icon: '🌧️', color: 'from-orange-400 to-red-500' }
+      ];
+
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col p-6 overflow-auto">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <button onclick="navigateTo('menu')" class="bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors">
+              <span class="text-2xl">⬅️</span>
+            </button>
+            <h2 class="title-font text-3xl font-bold text-white">เลือกด่าน</h2>
+            <div class="bg-white/20 rounded-full px-4 py-2 flex items-center gap-2">
+              <span class="text-xl">⭐</span>
+              <span class="text-lg font-bold text-yellow-300">${calculateTotalStars()}</span>
+            </div>
+          </div>
+          
+          <!-- Level Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+            ${levels.map((level, idx) => {
+              const isUnlocked = gameState.unlockedLevels.includes(level.num);
+              const levelStars = calculateLevelStars(level.num);
+              return `
+                <div class="level-card ${!isUnlocked ? 'locked' : ''} p-6 cursor-pointer slide-up" 
+                     style="animation-delay: ${idx * 0.1}s;"
+                     onclick="${isUnlocked ? `startLevel(${level.num})` : 'showLockedMessage()'}">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br ${level.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg">
+                      ${level.icon}
+                    </div>
+                    ${!isUnlocked ? '<span class="text-3xl">🔒</span>' : ''}
+                  </div>
+                  <h3 class="title-font text-xl font-bold text-gray-800 mb-1">ด่านที่ ${level.num}</h3>
+                  <p class="text-lg font-semibold text-indigo-600 mb-2">${level.name}</p>
+                  <p class="text-sm text-gray-500 mb-3">${level.desc}</p>
+                  <div class="flex gap-1">
+                    ${[1,2,3].map(i => `<span class="text-2xl ${levelStars >= i ? 'star-filled' : 'star-empty'}">★</span>`).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHowToPlay(container) {
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col p-6 overflow-auto">
+          <!-- Header -->
+          <div class="flex items-center mb-6">
+            <button onclick="navigateTo('menu')" class="bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors mr-4">
+              <span class="text-2xl">⬅️</span>
+            </button>
+            <h2 class="title-font text-3xl font-bold text-white">📖 วิธีเล่น</h2>
+          </div>
+          
+          <div class="flex-1 overflow-auto space-y-4">
+            <!-- Level Instructions -->
+            <div class="bg-white/95 rounded-2xl p-5 slide-up">
+              <h3 class="title-font text-xl font-bold text-green-600 mb-3 flex items-center gap-2">
+                <span>📚</span> ด่าน 1: เรียนรู้คำศัพท์
+              </h3>
+              <p class="text-gray-600">ดูรูปภาพและคำศัพท์ กดปุ่มลำโพงเพื่อฟังเสียงอ่าน พร้อมแล้วกด "ถัดไป" เพื่อเรียนคำใหม่</p>
+            </div>
+            
+            <div class="bg-white/95 rounded-2xl p-5 slide-up" style="animation-delay: 0.1s;">
+              <h3 class="title-font text-xl font-bold text-blue-600 mb-3 flex items-center gap-2">
+                <span>🎯</span> ด่าน 2: จับคู่คำศัพท์
+              </h3>
+              <p class="text-gray-600">ดูรูปภาพแล้วเลือกคำศัพท์ที่ถูกต้องจากตัวเลือก 4 ข้อ ตอบถูกจะได้คะแนน!</p>
+            </div>
+            
+            <div class="bg-white/95 rounded-2xl p-5 slide-up" style="animation-delay: 0.2s;">
+              <h3 class="title-font text-xl font-bold text-purple-600 mb-3 flex items-center gap-2">
+                <span>✏️</span> ด่าน 3: ฝึกสะกดคำ
+              </h3>
+              <p class="text-gray-600">ดูรูปภาพแล้วกดตัวอักษรเรียงให้เป็นคำศัพท์ที่ถูกต้อง กดผิดสามารถลบแก้ไขได้</p>
+            </div>
+            
+            <div class="bg-white/95 rounded-2xl p-5 slide-up" style="animation-delay: 0.3s;">
+              <h3 class="title-font text-xl font-bold text-orange-600 mb-3 flex items-center gap-2">
+                <span>🌧️</span> ด่าน 4: ฝนตัวอักษร
+              </h3>
+              <p class="text-gray-600 mb-3">ตัวอักษรจะตกลงมาเหมือนฝน! กดเก็บตัวอักษรที่ถูกต้องตามคำศัพท์เป้าหมาย</p>
+              
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="bg-yellow-100 rounded-lg p-3 flex items-center gap-2">
+                  <span class="text-2xl">⚡</span>
+                  <div>
+                    <p class="font-bold text-yellow-700">Turbo</p>
+                    <p class="text-xs text-gray-500">เวลาเพิ่ม</p>
+                  </div>
+                </div>
+                <div class="bg-blue-100 rounded-lg p-3 flex items-center gap-2">
+                  <span class="text-2xl">❄️</span>
+                  <div>
+                    <p class="font-bold text-blue-700">Freeze</p>
+                    <p class="text-xs text-gray-500">ชะลอการตก</p>
+                  </div>
+                </div>
+                <div class="bg-purple-100 rounded-lg p-3 flex items-center gap-2">
+                  <span class="text-2xl">🧲</span>
+                  <div>
+                    <p class="font-bold text-purple-700">Magnet</p>
+                    <p class="text-xs text-gray-500">ดูดตัวอักษรถูก</p>
+                  </div>
+                </div>
+                <div class="bg-red-100 rounded-lg p-3 flex items-center gap-2">
+                  <span class="text-2xl">💣</span>
+                  <div>
+                    <p class="font-bold text-red-700">Bomb</p>
+                    <p class="text-xs text-gray-500">ลบตัวหลอกทั้งหมด</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl p-5 slide-up" style="animation-delay: 0.4s;">
+              <h3 class="title-font text-xl font-bold text-white mb-3 flex items-center gap-2">
+                <span>⭐</span> ระบบดาวและคะแนน
+              </h3>
+              <div class="text-white/90 space-y-2">
+                <p>• ⭐ 1 ดาว: ผ่านด่าน</p>
+                <p>• ⭐⭐ 2 ดาว: ทำคะแนนได้ดี</p>
+                <p>• ⭐⭐⭐ 3 ดาว: เก่งมาก! คะแนนสูงสุด</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLevel1(container) {
+      const vocab = vocabularyData[gameState.currentWordIndex];
+      const progress = ((gameState.currentWordIndex) / vocabularyData.length) * 100;
+      
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col p-6">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4">
+            <button onclick="exitLevel()" class="bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors">
+              <span class="text-2xl">⬅️</span>
+            </button>
+            <h2 class="title-font text-2xl font-bold text-white">📚 เรียนรู้คำศัพท์</h2>
+            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
+              ⏭️ Skip
+            </button>
+          </div>
+          
+          <!-- Progress Bar -->
+          <div class="progress-bar mb-6">
+            <div class="progress-fill" style="width: ${progress}%"></div>
+          </div>
+          
+          <!-- Vocabulary Card -->
+          <div class="flex-1 flex items-center justify-center">
+            <div class="vocab-card p-8 max-w-md w-full bounce-in">
+              <div class="text-center">
+                <div class="text-8xl mb-6">${vocab.emoji}</div>
+                <h3 class="title-font text-4xl font-bold text-indigo-700 mb-2">${vocab.word}</h3>
+                <p class="text-xl text-gray-500 mb-6">${vocab.thai}</p>
+                
+                <button onclick="speakWord('${vocab.word}')" 
+                        class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 p-4 rounded-full text-white shadow-lg hover:scale-110 transition-transform">
+                  <span class="text-3xl">🔊</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Navigation -->
+          <div class="flex justify-between mt-6">
+            <button onclick="prevWord()" 
+                    class="${gameState.currentWordIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''} bg-white/20 hover:bg-white/30 py-3 px-6 rounded-xl text-white font-bold transition-colors"
+                    ${gameState.currentWordIndex === 0 ? 'disabled' : ''}>
+              ⬅️ ก่อนหน้า
+            </button>
+            <button onclick="nextWord()" class="game-btn py-3 px-6 text-amber-900 font-bold">
+              ${gameState.currentWordIndex === vocabularyData.length - 1 ? '✅ จบบทเรียน' : 'ถัดไป ➡️'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLevel2(container) {
+      const vocab = vocabularyData[gameState.currentWordIndex];
+      const options = generateOptions(vocab, 4);
+      
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col p-6">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4">
+            <button onclick="exitLevel()" class="bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors">
+              <span class="text-2xl">⬅️</span>
+            </button>
+            <h2 class="title-font text-2xl font-bold text-white">🎯 จับคู่คำศัพท์</h2>
+            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
+              ⏭️ Skip
+            </button>
+          </div>
+          
+
+          
+          <!-- Question -->
+          <div class="flex-1 flex flex-col items-center justify-center">
+            <div class="bg-white/95 rounded-3xl p-8 mb-6 bounce-in">
+              <div class="text-8xl text-center">${vocab.emoji}</div>
+            </div>
+            
+            <p class="text-xl text-purple-200 mb-6">คำศัพท์นี้คืออะไร?</p>
+            
+            <!-- Options -->
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md">
+              ${options.map((opt, idx) => `
+                <button onclick="checkAnswer('${opt.word}', '${vocab.word}', this)" 
+                        class="matching-card p-4 text-xl font-bold text-indigo-700 slide-up"
+                        style="animation-delay: ${idx * 0.1}s;">
+                  ${opt.word}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          
+          <!-- Progress -->
+          <div class="mt-6">
+            <div class="text-center text-white mb-2">คำที่ ${gameState.currentWordIndex + 1} / ${vocabularyData.length}</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${(gameState.currentWordIndex / vocabularyData.length) * 100}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLevel3(container) {
+      const vocab = vocabularyData[gameState.currentWordIndex];
+      const shuffledLetters = vocab.word.split('').sort(() => Math.random() - 0.5);
+      
+      if (!gameState.spellingState) {
+        gameState.spellingState = {
+          targetWord: vocab.word,
+          availableLetters: shuffledLetters.map((l, i) => ({ letter: l, id: i, used: false })),
+          selectedLetters: []
+        };
+      }
+      
+      const state = gameState.spellingState;
+      
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col p-6">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4">
+            <button onclick="exitLevel()" class="bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors">
+              <span class="text-2xl">⬅️</span>
+            </button>
+            <h2 class="title-font text-2xl font-bold text-white">✏️ ฝึกสะกดคำ</h2>
+            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
+              ⏭️ Skip
+            </button>
+          </div>
+          
+
+          
+          <!-- Question -->
+          <div class="flex-1 flex flex-col items-center justify-center">
+            <div class="bg-white/95 rounded-3xl p-6 mb-6 bounce-in">
+              <div class="text-7xl text-center">${vocab.emoji}</div>
+              <p class="text-center text-gray-500 mt-2">${vocab.thai}</p>
+            </div>
+            
+            <!-- Answer Slots -->
+            <div class="flex gap-2 mb-8 flex-wrap justify-center">
+              ${vocab.word.split('').map((_, idx) => {
+                const selected = state.selectedLetters[idx];
+                return `
+                  <div class="spelling-slot ${selected ? 'filled' : ''}" onclick="removeSpellingLetter(${idx})">
+                    ${selected ? selected.letter : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            
+            <!-- Available Letters -->
+            <div class="flex gap-2 flex-wrap justify-center">
+              ${state.availableLetters.map(item => {
+                if (item.used) return '';
+                return `
+                  <button onclick="selectSpellingLetter(${item.id})" 
+                          class="spelling-letter flex items-center justify-center">
+                    ${item.letter}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            
+            <!-- Check Button -->
+            ${state.selectedLetters.length === vocab.word.length ? `
+              <button onclick="checkSpelling()" class="game-btn py-3 px-8 mt-6 text-amber-900 font-bold">
+                ✅ ตรวจคำตอบ
+              </button>
+            ` : ''}
+          </div>
+          
+          <!-- Progress -->
+          <div class="mt-6">
+            <div class="text-center text-white mb-2">คำที่ ${gameState.currentWordIndex + 1} / ${vocabularyData.length}</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${(gameState.currentWordIndex / vocabularyData.length) * 100}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLevel4(container) {
+      const vocab = vocabularyData[gameState.currentWordIndex];
+      rainGame.targetWord = vocab.word;
+      
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col p-4 relative overflow-hidden" id="rain-game-container">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-2 relative z-10">
+            <button onclick="exitLevel(); stopRainGame();" class="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-colors">
+              <span class="text-xl">⬅️</span>
+            </button>
+            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
+              ⏭️ Skip
+            </button>
+            <div class="flex items-center gap-4">
+              <div class="bg-yellow-400 rounded-full px-3 py-1 flex items-center gap-1">
+                <span>🏆</span>
+                <span class="font-bold text-amber-900" id="rain-score">${gameState.score}</span>
+              </div>
+              <div class="bg-orange-400 rounded-full px-3 py-1 flex items-center gap-1">
+                <span>🔥</span>
+                <span class="font-bold text-white" id="rain-combo">${gameState.combo}x</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Lives -->
+          <div class="flex justify-center gap-1 mb-4 relative z-10" id="rain-lives">
+            ${[1,2,3].map(i => `<span class="text-2xl ${gameState.lives >= i ? 'heart' : 'heart-empty'}">❤️</span>`).join('')}
+          </div>
+          
+          <!-- Target Word in Purple Box -->
+          <div class="flex justify-center mb-6 relative z-10">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl px-8 py-4 shadow-lg transition-all duration-300"
+                 id="target-word-box">
+              <div class="flex justify-center gap-2">
+                ${vocab.word.split('').map((letter, idx) => {
+                  const collected = rainGame.collectedLetters[idx];
+                  return `
+                    <div class="letter-box ${collected ? 'bg-gradient-to-b from-green-400 to-emerald-500 border-green-600 shadow-lg' : 'bg-gradient-to-b from-purple-400 to-indigo-500 border-purple-700'} transition-all duration-300">
+                      ${letter}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Game Area with Forest Background -->
+          <div class="flex-1 relative overflow-hidden" id="rain-area" style="background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #90EE90 100%);">
+            <!-- Sky -->
+            <svg class="absolute inset-0 w-full h-full" style="pointer-events: none;">
+              <!-- Sun -->
+              <circle cx="85%" cy="10%" r="40" fill="#FFD700" opacity="0.8"/>
+              <circle cx="85%" cy="10%" r="45" fill="#FFD700" opacity="0.4"/>
+              
+              <!-- Clouds -->
+              <ellipse cx="20%" cy="15%" rx="60" ry="30" fill="white" opacity="0.7"/>
+              <ellipse cx="25%" cy="12%" rx="50" ry="25" fill="white" opacity="0.7"/>
+              <ellipse cx="70%" cy="25%" rx="70" ry="35" fill="white" opacity="0.6"/>
+              <ellipse cx="77%" cy="22%" rx="55" ry="28" fill="white" opacity="0.6"/>
+            </svg>
+            
+            <!-- Trees Left -->
+            <svg class="absolute left-0 bottom-0" width="200" height="300" style="pointer-events: none;">
+              <!-- Tree 1 - Left -->
+              <rect x="60" y="180" width="30" height="100" fill="#8B4513"/>
+              <ellipse cx="75" cy="140" rx="80" ry="100" fill="#228B22"/>
+              <ellipse cx="60" cy="160" rx="60" ry="70" fill="#2E8B57"/>
+              <ellipse cx="90" cy="150" rx="50" ry="60" fill="#2E8B57"/>
+            </svg>
+            
+            <!-- Trees Right -->
+            <svg class="absolute right-0 bottom-0" width="200" height="300" style="pointer-events: none;">
+              <!-- Tree 2 - Right -->
+              <rect x="110" y="190" width="25" height="90" fill="#8B4513"/>
+              <ellipse cx="122" cy="155" rx="75" ry="95" fill="#1a6b1a"/>
+              <ellipse cx="105" cy="175" rx="55" ry="65" fill="#228B22"/>
+              <ellipse cx="140" cy="165" rx="50" ry="55" fill="#2E8B57"/>
+            </svg>
+            
+            <!-- Small decorative trees in background -->
+            <svg class="absolute left-1/4 bottom-10" width="100" height="150" style="pointer-events: none; opacity: 0.6;">
+              <rect x="35" y="90" width="15" height="60" fill="#654321"/>
+              <ellipse cx="42" cy="65" rx="50" ry="60" fill="#1a5f1a"/>
+              <ellipse cx="25" cy="80" rx="35" ry="45" fill="#2E8B57"/>
+              <ellipse cx="60" cy="75" rx="40" ry="50" fill="#2E8B57"/>
+            </svg>
+            
+            <!-- Falling letters container -->
+            <div id="falling-letters"></div>
+          </div>
+          
+          <!-- Power-ups -->
+          <div class="flex justify-center gap-3 mt-4 relative z-10">
+            <button onclick="usePowerup('turbo')" class="powerup-btn bg-yellow-400 hover:bg-yellow-300" 
+                    ${rainGame.powerups.turbo <= 0 ? 'disabled' : ''} title="เวลาเพิ่ม">
+              ⚡<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${rainGame.powerups.turbo}</span>
+            </button>
+            <button onclick="usePowerup('freeze')" class="powerup-btn bg-blue-400 hover:bg-blue-300"
+                    ${rainGame.powerups.freeze <= 0 ? 'disabled' : ''} title="ชะลอการตก">
+              ❄️<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${rainGame.powerups.freeze}</span>
+            </button>
+            <button onclick="usePowerup('magnet')" class="powerup-btn bg-purple-400 hover:bg-purple-300"
+                    ${rainGame.powerups.magnet <= 0 ? 'disabled' : ''} title="ดูดตัวอักษรถูก">
+              🧲<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${rainGame.powerups.magnet}</span>
+            </button>
+            <button onclick="usePowerup('bomb')" class="powerup-btn bg-red-400 hover:bg-red-300"
+                    ${rainGame.powerups.bomb <= 0 ? 'disabled' : ''} title="ลบตัวหลอก">
+              💣<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${rainGame.powerups.bomb}</span>
+            </button>
+          </div>
+          
+          <!-- Start Button (if not playing) -->
+          ${!rainGame.isPlaying ? `
+            <div class="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+              <button onclick="startRainGame()" class="game-btn py-4 px-8 text-2xl font-bold text-amber-900 bounce-in">
+                🌧️ เริ่มเกม!
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      if (rainGame.isPlaying) {
+        renderFallingLetters();
+      }
+    }
+
+    function renderResult(container) {
+      const stars = calculateStars(gameState.score, gameState.currentLevel);
+      const isGameOver = gameState.lives <= 0;
+      
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col items-center justify-center p-6">
+          <div class="bg-white/95 rounded-3xl p-8 max-w-md w-full text-center bounce-in">
+            <div class="text-6xl mb-4">${isGameOver ? '😢' : '🎉'}</div>
+            <h2 class="title-font text-3xl font-bold ${isGameOver ? 'text-red-500' : 'text-indigo-700'} mb-4">
+              ${isGameOver ? 'Game Over!' : 'ยอดเยี่ยม!'}
+            </h2>
+            
+            <!-- Stars -->
+            <div class="flex justify-center gap-2 mb-6">
+              ${[1,2,3].map(i => `
+                <span class="text-5xl ${stars >= i ? 'star-filled bounce-in' : 'star-empty'}" 
+                      style="animation-delay: ${i * 0.2}s;">★</span>
+              `).join('')}
+            </div>
+            
+            <!-- Score -->
+            <div class="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl p-4 mb-6">
+              <p class="text-white text-lg">คะแนนที่ได้</p>
+              <p class="title-font text-4xl font-bold text-white">${gameState.score}</p>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-indigo-100 rounded-xl p-3">
+                <p class="text-indigo-600 text-sm">ด่านที่เล่น</p>
+                <p class="title-font text-2xl font-bold text-indigo-700">${gameState.currentLevel}</p>
+              </div>
+              <div class="bg-green-100 rounded-xl p-3">
+                <p class="text-green-600 text-sm">Combo สูงสุด</p>
+                <p class="title-font text-2xl font-bold text-green-700">${gameState.combo}x</p>
+              </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex flex-col gap-3">
+              <button onclick="restartLevel()" class="game-btn py-3 px-6 text-amber-900 font-bold w-full">
+                🔄 เล่นอีกครั้ง
+              </button>
+              <button onclick="navigateTo('levels')" class="bg-gradient-to-r from-indigo-500 to-purple-500 py-3 px-6 rounded-xl text-white font-bold w-full">
+                📋 เลือกด่านอื่น
+              </button>
+              <button onclick="navigateTo('menu')" class="bg-gray-200 hover:bg-gray-300 py-3 px-6 rounded-xl text-gray-700 font-bold w-full">
+                🏠 กลับหน้าหลัก
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Game Logic Functions
+    function navigateTo(screen) {
+      gameState.currentScreen = screen;
+      renderCurrentScreen();
+    }
+
+    function startLevel(levelNum) {
+      gameState.currentLevel = levelNum;
+      gameState.currentWordIndex = 0;
+      gameState.score = 0;
+      gameState.lives = 3;
+      gameState.combo = 0;
+      gameState.spellingState = null;
+      
+      rainGame = {
+        basketX: 50,
+        fallingLetters: [],
+        collectedLetters: [],
+        targetWord: '',
+        gameInterval: null,
+        isPlaying: false,
+        powerups: { turbo: 1, freeze: 1, magnet: 1, bomb: 1 },
+        isTurbo: false,
+        isFreeze: false,
+        isMagnet: false
+      };
+      
+      gameState.currentScreen = `level${levelNum}`;
+      renderCurrentScreen();
+    }
+
+    function exitLevel() {
+      stopRainGame();
+      gameState.currentScreen = 'levels';
+      renderCurrentScreen();
+    }
+
+    function restartLevel() {
+      startLevel(gameState.currentLevel);
+    }
+
+    function showLockedMessage() {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-xl font-bold z-50 bounce-in';
+      toast.textContent = '🔒 ต้องผ่านด่านก่อนหน้าก่อน!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+
+    // Level 1 Functions
+    function speakWord(word) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8;
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    function prevWord() {
+      if (gameState.currentWordIndex > 0) {
+        gameState.currentWordIndex--;
+        renderCurrentScreen();
+      }
+    }
+
+    function nextWord() {
+      if (gameState.currentWordIndex < vocabularyData.length - 1) {
+        gameState.currentWordIndex++;
+        gameState.score += 10;
+        renderCurrentScreen();
+      } else {
+        // ด่านเสร็จ - บันทึกและไปหน้าผลลัพธ์
+        const stars = calculateStars(gameState.score, gameState.currentLevel);
+        if (stars > 0) {
+          saveProgress(gameState.currentLevel, stars);
+        }
+        gameState.score = 100;
+        gameState.currentScreen = 'result';
+        renderCurrentScreen();
+      }
+    }
+
+    // Level 2 Functions
+    function generateOptions(correctVocab, count) {
+      const options = [correctVocab];
+      const others = vocabularyData.filter(v => v.id !== correctVocab.id);
+      
+      while (options.length < count && others.length > 0) {
+        const randomIndex = Math.floor(Math.random() * others.length);
+        options.push(others.splice(randomIndex, 1)[0]);
+      }
+      
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function checkAnswer(selected, correct, element) {
+      const buttons = element.parentElement.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = true);
+      
+      if (selected === correct) {
+        element.classList.add('correct');
+        gameState.score += 20 * (1 + gameState.combo * 0.1);
+        gameState.combo++;
+        showFeedback(true);
+        updateLivesDisplay();
+        
+        setTimeout(() => {
+          if (gameState.currentWordIndex < vocabularyData.length - 1) {
+            gameState.currentWordIndex++;
+            renderCurrentScreen();
+          } else {
+            gameState.currentScreen = 'result';
+            renderCurrentScreen();
+          }
+        }, 1000);
+      } else {
+        element.classList.add('wrong');
+        gameState.lives--;
+        gameState.combo = 0;
+        showFeedback(false);
+        updateLivesDisplay();
+        
+        setTimeout(() => {
+          if (gameState.lives <= 0) {
+            gameState.currentScreen = 'result';
+            renderCurrentScreen();
+          } else {
+            // Re-enable buttons to allow another try
+            buttons.forEach(btn => btn.disabled = false);
+            buttons.forEach(btn => btn.classList.remove('wrong', 'correct'));
+          }
+        }, 1000);
+      }
+    }
+
+    function updateHeartsDisplay() {
+      const heartsEl = document.querySelectorAll('span');
+      let heartCount = 0;
+      heartsEl.forEach((el, idx) => {
+        if (el.textContent === '❤️' || el.textContent === '🤍') {
+          if (heartCount < gameState.lives) {
+            el.classList.remove('heart-empty');
+            el.classList.add('heart');
+            el.textContent = '❤️';
+          } else {
+            el.classList.remove('heart');
+            el.classList.add('heart-empty');
+            el.textContent = '🤍';
+          }
+          heartCount++;
+        }
+      });
+    }
+
+    // Level 3 Functions
+    function selectSpellingLetter(id) {
+      const state = gameState.spellingState;
+      const item = state.availableLetters.find(l => l.id === id);
+      if (item && !item.used) {
+        item.used = true;
+        state.selectedLetters.push(item);
+        renderCurrentScreen();
+      }
+    }
+
+    function removeSpellingLetter(idx) {
+      const state = gameState.spellingState;
+      if (state.selectedLetters[idx]) {
+        const item = state.selectedLetters[idx];
+        item.used = false;
+        state.selectedLetters.splice(idx, 1);
+        renderCurrentScreen();
+      }
+    }
+
+    function checkSpelling() {
+      const state = gameState.spellingState;
+      const answer = state.selectedLetters.map(l => l.letter).join('');
+      
+      if (answer === state.targetWord) {
+        gameState.score += 30 * (1 + gameState.combo * 0.1);
+        gameState.combo++;
+        showFeedback(true);
+        
+        setTimeout(() => {
+          gameState.spellingState = null;
+          if (gameState.currentWordIndex < vocabularyData.length - 1) {
+            gameState.currentWordIndex++;
+            renderCurrentScreen();
+          } else {
+            gameState.currentScreen = 'result';
+            renderCurrentScreen();
+          }
+        }, 1000);
+      } else {
+        gameState.lives--;
+        gameState.combo = 0;
+        showFeedback(false);
+        
+        setTimeout(() => {
+          if (gameState.lives <= 0) {
+            gameState.currentScreen = 'result';
+            renderCurrentScreen();
+          } else {
+            // Reset spelling state
+            const vocab = vocabularyData[gameState.currentWordIndex];
+            gameState.spellingState = {
+              targetWord: vocab.word,
+              availableLetters: vocab.word.split('').sort(() => Math.random() - 0.5).map((l, i) => ({ letter: l, id: i, used: false })),
+              selectedLetters: []
+            };
+            renderCurrentScreen();
+          }
+        }, 1000);
+      }
+    }
+
+    // Level 4 Functions
+    function startRainGame() {
+      rainGame.isPlaying = true;
+      rainGame.collectedLetters = [];
+      renderCurrentScreen();
+      
+      rainGame.gameInterval = setInterval(() => {
+        spawnFallingLetter();
+        updateFallingLetters();
+        renderFallingLetters();
+      }, 100);
+    }
+
+    function stopRainGame() {
+      if (rainGame.gameInterval) {
+        clearInterval(rainGame.gameInterval);
+        rainGame.gameInterval = null;
+      }
+      rainGame.isPlaying = false;
+    }
+
+    function spawnFallingLetter() {
+      if (Math.random() > 0.95 && rainGame.fallingLetters.length < 10) {
+        const targetLetters = rainGame.targetWord.split('');
+        const nextNeeded = targetLetters[rainGame.collectedLetters.length];
+        
+        // 55% chance for correct letter, 45% for wrong letters
+        const isCorrect = Math.random() < 0.55 && nextNeeded;
+        let letter;
+        
+        if (isCorrect) {
+          letter = nextNeeded;
+        } else {
+          // Generate wrong letter - can be duplicate or different
+          letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        }
+        
+        rainGame.fallingLetters.push({
+          id: Date.now() + Math.random(),
+          letter: letter,
+          x: Math.random() * 85 + 5,
+          y: 0,
+          isCorrect: letter === nextNeeded,
+          speed: 1.5 + Math.random() * 1.5
+        });
+      }
+    }
+
+    function updateFallingLetters() {
+      const speedMultiplier = rainGame.isFreeze ? 0.3 : 1;
+      const targetLetters = rainGame.targetWord.split('');
+      const nextNeeded = targetLetters[rainGame.collectedLetters.length];
+      
+      rainGame.fallingLetters = rainGame.fallingLetters.filter(letter => {
+        letter.y += letter.speed * speedMultiplier;
+        
+        // Magnet effect
+        if (rainGame.isMagnet && letter.isCorrect) {
+          letter.y += 2;
+        }
+        
+        // Check if letter fell off screen - only lose lives for the NEXT NEEDED letter
+        if (letter.y > 100) {
+          if (letter.letter === nextNeeded) {
+            gameState.lives--;
+            gameState.combo = 0;
+            updateLivesDisplay();
+            showToast('❌ ตัวอักษรถูกตกหล่นไป!');
+            if (gameState.lives <= 0) {
+              stopRainGame();
+              gameState.currentScreen = 'result';
+              renderCurrentScreen();
+            }
+          }
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function renderFallingLetters() {
+      const container = document.getElementById('falling-letters');
+      if (!container) return;
+      
+      container.innerHTML = rainGame.fallingLetters.map(letter => `
+        <div class="falling-letter ${letter.isCorrect ? '' : 'wrong'}" 
+             data-letter-id="${letter.id}"
+             style="left: ${letter.x}%; top: ${letter.y}%;">
+          ${letter.letter}
+        </div>
+      `).join('');
+      
+      // Add click handlers to all letters
+      document.querySelectorAll('[data-letter-id]').forEach(el => {
+        el.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const id = this.dataset.letterId;
+          collectLetter(id);
+        });
+      });
+    }
+
+    function collectLetter(id) {
+      // Find letter by exact ID match
+      let letterIndex = -1;
+      let letter = null;
+      
+      for (let i = 0; i < rainGame.fallingLetters.length; i++) {
+        if (rainGame.fallingLetters[i].id == id) {
+          letterIndex = i;
+          letter = rainGame.fallingLetters[i];
+          break;
+        }
+      }
+      
+      if (!letter || letterIndex === -1) return;
+      
+      const targetLetters = rainGame.targetWord.split('');
+      const nextNeeded = targetLetters[rainGame.collectedLetters.length];
+      
+      // Remove letter from falling list
+      rainGame.fallingLetters.splice(letterIndex, 1);
+      
+      if (letter.letter === nextNeeded) {
+        // Correct letter collected
+        rainGame.collectedLetters.push(letter.letter);
+        gameState.score += 50 * (1 + gameState.combo * 0.2);
+        gameState.combo++;
+        
+        // Speed up remaining falling letters
+        rainGame.fallingLetters.forEach(l => {
+          l.speed += 0.5;
+        });
+        
+        showFeedback(true);
+        updateScoreDisplay();
+        updateLivesDisplay();
+        
+        // Update target word display
+        const targetBox = document.getElementById('target-word-box');
+        if (targetBox) {
+          targetBox.innerHTML = `
+            <div class="flex justify-center gap-2">
+              ${rainGame.targetWord.split('').map((letter, idx) => {
+                const collected = rainGame.collectedLetters[idx];
+                return `
+                  <div class="letter-box ${collected ? 'bg-gradient-to-b from-green-400 to-emerald-500 border-green-600 shadow-lg' : 'bg-gradient-to-b from-purple-400 to-indigo-500 border-purple-700'} transition-all duration-300">
+                    ${letter}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+        
+        // Instantly render falling letters
+        renderFallingLetters();
+        
+        // Check if word complete
+        if (rainGame.collectedLetters.length === targetLetters.length) {
+          gameState.score += 100;
+          stopRainGame();
+          
+          setTimeout(() => {
+            if (gameState.currentWordIndex < vocabularyData.length - 1) {
+              gameState.currentWordIndex++;
+              rainGame.collectedLetters = [];
+              rainGame.fallingLetters = [];
+              renderCurrentScreen();
+            } else {
+              gameState.currentScreen = 'result';
+              renderCurrentScreen();
+            }
+          }, 1500);
+        }
+      } else {
+        // Wrong letter
+        const targetBox = document.getElementById('target-word-box');
+        if (targetBox) {
+          targetBox.classList.add('shake');
+          setTimeout(() => targetBox.classList.remove('shake'), 300);
+        }
+        gameState.lives--;
+        gameState.combo = 0;
+        showFeedback(false);
+        updateLivesDisplay();
+        
+        // Instantly render without the collected letter
+        renderFallingLetters();
+        
+        if (gameState.lives <= 0) {
+          stopRainGame();
+          gameState.currentScreen = 'result';
+          renderCurrentScreen();
+        }
+      }
+    }
+
+    function skipWord() {
+      // หยุดเกมฝนหากกำลังเล่นอยู่
+      if (gameState.currentScreen === 'level4') {
+        stopRainGame();
+      }
+      
+      gameState.score += 100;
+      gameState.combo++;
+      showToast('⏭️ ข้ามคำศัพท์! +100 คะแนน');
+      
+      if (gameState.currentWordIndex < vocabularyData.length - 1) {
+        gameState.currentWordIndex++;
+        gameState.spellingState = null;
+        rainGame.collectedLetters = [];
+        rainGame.fallingLetters = [];
+        renderCurrentScreen();
+      } else {
+        // ด่านเสร็จ - บันทึกและไปหน้าผลลัพธ์
+        const stars = calculateStars(gameState.score, gameState.currentLevel);
+        if (stars > 0) {
+          saveProgress(gameState.currentLevel, stars);
+        }
+        gameState.currentScreen = 'result';
+        renderCurrentScreen();
+      }
+    }
+
+    function usePowerup(type) {
+      if (rainGame.powerups[type] <= 0) return;
+      rainGame.powerups[type]--;
+      
+      switch(type) {
+        case 'turbo':
+          gameState.lives = Math.min(gameState.lives + 1, 3);
+          showToast('❤️ +1 พลังชีวิต!');
+          break;
+        case 'freeze':
+          rainGame.isFreeze = true;
+          showToast('❄️ ชะลอเวลา 5 วินาที!');
+          setTimeout(() => { rainGame.isFreeze = false; }, 5000);
+          break;
+        case 'magnet':
+          rainGame.isMagnet = true;
+          showToast('🧲 ดูดตัวอักษร 5 วินาที!');
+          setTimeout(() => { rainGame.isMagnet = false; }, 5000);
+          break;
+        case 'bomb':
+          rainGame.fallingLetters = rainGame.fallingLetters.filter(l => l.isCorrect);
+          showToast('💣 ล้างตัวอักษรหลอก!');
+          break;
+      }
+      
+      updateLivesDisplay();
+      renderCurrentScreen();
+    }
+
+    // UI Helper Functions
+    function showFeedback(isCorrect) {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl z-50 bounce-in`;
+      toast.textContent = isCorrect ? '✅' : '❌';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 800);
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 bg-white/95 text-gray-800 px-6 py-3 rounded-xl font-bold z-50 bounce-in shadow-lg';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+
+    function updateScoreDisplay() {
+      const scoreEl = document.getElementById('rain-score');
+      const comboEl = document.getElementById('rain-combo');
+      if (scoreEl) scoreEl.textContent = Math.floor(gameState.score);
+      if (comboEl) comboEl.textContent = `${gameState.combo}x`;
+    }
+
+    function updateLivesDisplay() {
+      const livesEl = document.getElementById('rain-lives');
+      if (livesEl) {
+        livesEl.innerHTML = [1,2,3].map(i => {
+          if (gameState.lives >= i) {
+            return `<span class="text-2xl heart">❤️</span>`;
+          } else {
+            return `<span class="text-2xl heart-empty">🤍</span>`;
+          }
+        }).join('');
+      }
+    }
+
+    function calculateStars(score, level) {
+      const thresholds = {
+        1: [50, 80, 100],
+        2: [100, 150, 200],
+        3: [150, 250, 350],
+        4: [200, 400, 600]
+      };
+      const t = thresholds[level] || [100, 200, 300];
+      if (score >= t[2]) return 3;
+      if (score >= t[1]) return 2;
+      if (score >= t[0]) return 1;
+      return 0;
+    }
+
+    function calculateTotalStars() {
+      return gameState.completedLevels.length * 3;
+    }
+
+    function calculateLevelStars(level) {
+      return gameState.completedLevels.includes(level) ? 3 : 0;
+    }
+
+    // SDK Integration
+    async function initApp() {
+      renderCurrentScreen();
+    }
+
+    // Start the app
+    initApp();
+    const characterAssets = {
+      chibiGirl: `
+        <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Head -->
+          <circle cx="100" cy="60" r="35" fill="#f4b8a0"/>
+          
+          <!-- Hair -->
+          <path d="M 65 60 Q 60 30 100 25 Q 140 30 135 60" fill="#8B4513"/>
+          <path d="M 70 55 Q 75 40 100 35 Q 125 40 130 55" fill="#A0522D"/>
+          
+          <!-- Hair bows -->
+          <ellipse cx="75" cy="35" rx="8" ry="12" fill="#FF69B4" transform="rotate(-20 75 35)"/>
+          <ellipse cx="125" cy="35" rx="8" ry="12" fill="#FF69B4" transform="rotate(20 125 35)"/>
+          
+          <!-- Eyes -->
+          <circle cx="90" cy="55" r="4" fill="#000"/>
+          <circle cx="110" cy="55" r="4" fill="#000"/>
+          <circle cx="91" cy="53" r="1.5" fill="#fff"/>
+          <circle cx="111" cy="53" r="1.5" fill="#fff"/>
+          
+          <!-- Smile -->
+          <path d="M 95 65 Q 100 68 105 65" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          
+          <!-- Body (School Uniform) -->
+          <rect x="75" y="95" width="50" height="40" rx="5" fill="#1a1a6b"/>
+          
+          <!-- White collar -->
+          <path d="M 75 95 L 70 100 L 85 105 L 100 102 L 115 105 L 130 100 L 125 95" fill="#fff"/>
+          
+          <!-- Arms -->
+          <rect x="50" y="100" width="20" height="35" rx="10" fill="#f4b8a0"/>
+          <rect x="130" y="100" width="20" height="35" rx="10" fill="#f4b8a0"/>
+          
+          <!-- Hands -->
+          <circle cx="60" cy="140" r="8" fill="#f4b8a0"/>
+          <circle cx="140" cy="140" r="8" fill="#f4b8a0"/>
+          
+          <!-- Skirt -->
+          <path d="M 75 135 L 65 175 Q 100 180 135 175 L 125 135" fill="#ff6b9d"/>
+          
+          <!-- Legs -->
+          <rect x="85" y="175" width="12" height="35" fill="#f4b8a0"/>
+          <rect x="103" y="175" width="12" height="35" fill="#f4b8a0"/>
+          
+          <!-- Shoes -->
+          <ellipse cx="91" cy="215" rx="10" ry="8" fill="#333"/>
+          <ellipse cx="109" cy="215" rx="10" ry="8" fill="#333"/>
+          
+          <!-- Blush -->
+          <ellipse cx="65" cy="70" rx="6" ry="4" fill="#ffb3d9" opacity="0.6"/>
+          <ellipse cx="135" cy="70" rx="6" ry="4" fill="#ffb3d9" opacity="0.6"/>
+        </svg>
+      `,
+      
+      chibiBoy: `
+        <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Head -->
+          <circle cx="100" cy="60" r="35" fill="#e8c4a0"/>
+          
+          <!-- Hair -->
+          <path d="M 65 50 Q 60 20 100 15 Q 140 20 135 50" fill="#1a1a1a"/>
+          <path d="M 75 45 Q 80 30 100 25 Q 120 30 125 45" fill="#2d2d2d"/>
+          
+          <!-- Eyes -->
+          <circle cx="90" cy="55" r="5" fill="#000"/>
+          <circle cx="110" cy="55" r="5" fill="#000"/>
+          <circle cx="92" cy="52" r="2" fill="#fff"/>
+          <circle cx="112" cy="52" r="2" fill="#fff"/>
+          
+          <!-- Happy expression -->
+          <path d="M 95 68 Q 100 72 105 68" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+          
+          <!-- Body (School Uniform) -->
+          <rect x="75" y="95" width="50" height="40" rx="5" fill="#1a1a6b"/>
+          
+          <!-- White shirt -->
+          <path d="M 80 95 L 75 100 L 85 110 L 115 110 L 125 100 L 120 95" fill="#fff"/>
+          
+          <!-- Tie -->
+          <rect x="98" y="105" width="4" height="18" fill="#ff4444"/>
+          
+          <!-- Arms -->
+          <rect x="50" y="100" width="22" height="38" rx="11" fill="#e8c4a0"/>
+          <rect x="128" y="100" width="22" height="38" rx="11" fill="#e8c4a0"/>
+          
+          <!-- Hands -->
+          <circle cx="61" cy="145" r="9" fill="#e8c4a0"/>
+          <circle cx="139" cy="145" r="9" fill="#e8c4a0"/>
+          
+          <!-- Pants -->
+          <path d="M 80 135 L 80 175 L 90 180 L 90 135" fill="#333"/>
+          <path d="M 110 135 L 110 175 L 120 180 L 120 135" fill="#333"/>
+          
+          <!-- Shoes -->
+          <ellipse cx="90" cy="218" rx="11" ry="9" fill="#444"/>
+          <ellipse cx="110" cy="218" rx="11" ry="9" fill="#444"/>
+          
+          <!-- Blush -->
+          <ellipse cx="65" cy="68" rx="7" ry="5" fill="#ffb3b3" opacity="0.6"/>
+          <ellipse cx="135" cy="68" rx="7" ry="5" fill="#ffb3b3" opacity="0.6"/>
+        </svg>
+      `,
+      
+      basket: `
+        <svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+          <!-- Basket body -->
+          <path d="M 30 60 L 35 30 Q 35 20 45 20 L 155 20 Q 165 20 165 30 L 170 60" 
+                fill="#d4a574" stroke="#8B6F47" stroke-width="2"/>
+          
+          <!-- Basket weave pattern -->
+          <line x1="50" y1="20" x2="45" y2="60" stroke="#8B6F47" stroke-width="1" opacity="0.5"/>
+          <line x1="75" y1="20" x2="70" y2="60" stroke="#8B6F47" stroke-width="1" opacity="0.5"/>
+          <line x1="100" y1="20" x2="100" y2="60" stroke="#8B6F47" stroke-width="1" opacity="0.5"/>
+          <line x1="125" y1="20" x2="130" y2="60" stroke="#8B6F47" stroke-width="1" opacity="0.5"/>
+          <line x1="150" y1="20" x2="155" y2="60" stroke="#8B6F47" stroke-width="1" opacity="0.5"/>
+          
+          <!-- Horizontal weave -->
+          <path d="M 40 30 Q 100 32 160 30" stroke="#8B6F47" stroke-width="1" opacity="0.5" fill="none"/>
+          <path d="M 38 40 Q 100 42 162 40" stroke="#8B6F47" stroke-width="1" opacity="0.5" fill="none"/>
+          <path d="M 37 50 Q 100 52 163 50" stroke="#8B6F47" stroke-width="1" opacity="0.5" fill="none"/>
+          
+          <!-- Basket bottom -->
+          <ellipse cx="100" cy="60" rx="70" ry="12" fill="#c49560" stroke="#8B6F47" stroke-width="2"/>
+          
+          <!-- Handle -->
+          <path d="M 50 20 Q 50 -10 100 -15 Q 150 -10 150 20" 
+                fill="none" stroke="#8B6F47" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 50 20 Q 50 -5 100 -8 Q 150 -5 150 20" 
+                fill="none" stroke="#d4a574" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+          
+          <!-- Shine/highlight -->
+          <ellipse cx="75" cy="35" rx="15" ry="8" fill="#fff" opacity="0.2"/>
+        </svg>
+      `
+    };
+
+    // Start the app
+    initApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d9d4d3f97da272b',t:'MTc3MzA5MzA5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
