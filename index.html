@@ -570,9 +570,7 @@
               <span class="text-2xl">⬅️</span>
             </button>
             <h2 class="title-font text-2xl font-bold text-white">📚 เรียนรู้คำศัพท์</h2>
-            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
-              ⏭️ Skip
-            </button>
+            <div class="w-12"></div>
           </div>
           
           <!-- Progress Bar -->
@@ -623,9 +621,7 @@
               <span class="text-2xl">⬅️</span>
             </button>
             <h2 class="title-font text-2xl font-bold text-white">🎯 จับคู่คำศัพท์</h2>
-            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
-              ⏭️ Skip
-            </button>
+            <div class="w-12"></div>
           </div>
           
 
@@ -683,9 +679,7 @@
               <span class="text-2xl">⬅️</span>
             </button>
             <h2 class="title-font text-2xl font-bold text-white">✏️ ฝึกสะกดคำ</h2>
-            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
-              ⏭️ Skip
-            </button>
+            <div class="w-12"></div>
           </div>
           
 
@@ -751,9 +745,6 @@
           <div class="flex items-center justify-between mb-2 relative z-10">
             <button onclick="exitLevel(); stopRainGame();" class="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-colors">
               <span class="text-xl">⬅️</span>
-            </button>
-            <button onclick="skipWord()" class="bg-white/20 hover:bg-white/30 p-2 px-3 rounded-full transition-colors text-sm font-bold">
-              ⏭️ Skip
             </button>
             <div class="flex items-center gap-4">
               <div class="bg-yellow-400 rounded-full px-3 py-1 flex items-center gap-1">
@@ -1347,10 +1338,7 @@
         stopRainGame();
       }
       
-      gameState.score += 100;
-      gameState.combo++;
-      showToast('⏭️ ข้ามคำศัพท์! +100 คะแนน');
-      
+      // เก็บความก้าวหน้าแล้วไปคำถัดไป
       if (gameState.currentWordIndex < vocabularyData.length - 1) {
         gameState.currentWordIndex++;
         gameState.spellingState = null;
@@ -1602,5 +1590,5 @@
     // Start the app
     initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d9d4d3f97da272b',t:'MTc3MzA5MzA5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d9d7074072c272b',t:'MTc3MzA5NDUzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
