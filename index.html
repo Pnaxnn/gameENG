@@ -354,10 +354,10 @@
     function saveProgress(levelNum, stars) {
       if (!gameState.completedLevels.includes(levelNum)) {
         gameState.completedLevels.push(levelNum);
+        updateUnlockedLevels();
       }
       gameState.highScores[`level${levelNum}`] = Math.max(gameState.highScores[`level${levelNum}`], gameState.score);
       gameState.totalStars = calculateTotalStars();
-      updateUnlockedLevels();
     }
 
     // Render Functions
@@ -1028,6 +1028,9 @@
             gameState.currentWordIndex++;
             renderCurrentScreen();
           } else {
+            // ด่านเสร็จ - บันทึกก่อนไปหน้าผลลัพธ์
+            const stars = calculateStars(gameState.score, gameState.currentLevel);
+            saveProgress(gameState.currentLevel, stars);
             gameState.currentScreen = 'result';
             renderCurrentScreen();
           }
@@ -1107,6 +1110,11 @@
             gameState.currentWordIndex++;
             renderCurrentScreen();
           } else {
+            // ด่านเสร็จ - บันทึกความก้าวหน้าก่อน
+            const stars = calculateStars(gameState.score, gameState.currentLevel);
+            if (stars > 0) {
+              saveProgress(gameState.currentLevel, stars);
+            }
             gameState.currentScreen = 'result';
             renderCurrentScreen();
           }
@@ -1590,5 +1598,5 @@
     // Start the app
     initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d9d7074072c272b',t:'MTc3MzA5NDUzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9da04ab730d8731f',t:'MTc3MzEyNDQ0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
